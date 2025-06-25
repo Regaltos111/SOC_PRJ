@@ -1,0 +1,23 @@
+module memory_module(
+    input clk,
+    input en,
+    input wr,
+    input rd,
+    input [11:0] address,   // Memory is 4K
+    input [7:0] data_in,
+    output reg [7:0] data_out
+);
+    reg [7:0] memory [0:4095];
+
+    always @(posedge clk) begin
+        if (en && wr)
+            memory[address] <= data_in;
+    end
+
+    always @(*) begin
+        if (en && rd)
+            data_out = memory[address];
+        else
+            data_out = 8'bz;
+    end
+endmodule

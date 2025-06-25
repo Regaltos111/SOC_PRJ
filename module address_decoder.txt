@@ -1,0 +1,20 @@
+module address_decoder(
+    input [15:0] address,
+    output reg mem_en,
+    output reg io_en,
+    output reg periph_en
+);
+
+    always @(*) begin
+        mem_en = 0;
+        io_en = 0;
+        periph_en = 0;
+
+        if (address >= 16'h0000 && address <= 16'h3FFF)
+            mem_en = 1;
+        else if (address >= 16'h4000 && address <= 16'h4FFF)
+            io_en = 1;
+        else if (address >= 16'h5000 && address <= 16'h5FFF)
+            periph_en = 1;
+    end
+endmodule

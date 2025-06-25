@@ -1,0 +1,76 @@
+module cpu_system(
+    input clk,
+    input rst,
+    input [15:0] address,
+    inout [7:0] data,
+    input wr,
+    input rd
+);
+
+    wire mem_en, io_en, periph_en;
+    wire [7:0] mem_data_out, io_data_out, periph_data_out;
+    wire [7:0] data_in;
+    reg [7:0] data_out;
+    reg data_oe;  // Output Enable
+
+    // Address Decoder
+    address_decoder decoder (
+        .address(address),
+        .mem_en(mem_en),
+        .io_en(io_en),
+        .periph_en(periph_en)
+    );
+
+    // Memory Module
+    memory_module memory (
+        .clk(clk),
+        .en(mem_en),
+        .wr(wr),
+        .rd(rd),
+        .address(address[11:0]),
+        .data_in(data),
+        .data_out(mem_data_out)
+    );
+
+    // I/O Module
+    io_module io_dev (
+        .clk(clk),
+        .en(io_en),
+        .wr(wr),
+        .rd(rd),
+        .data_in(data),
+        .data_out(io_data_out)
+    );
+
+    // Peripheral Module
+    peripheral_module peripheral (
+        .clk(clk),
+        .en(periph_en),
+        .wr(wr),
+        .rd(rd),
+        .data_in(data),
+        .data_out(periph_data_out)
+    );
+
+    // Data Bus Management (Tri-state logic)
+    always @(*) begin
+        data_out = 8'bz;
+        data_oe = 0;
+
+        if (rd) begin
+            if (mem_en) begin
+                data_out = mem_data_out;
+                data_oe = 1;
+            end else if (io_en) begin
+                data_out = io_data_out;
+                data_oe = 1;
+            end else if (periph_en) begin
+                data_out = periph_data_out;
+                data_oe = 1;
+            end
+        end
+    end
+
+    assign data = data_oe ? data_out : 8'bz;
+
+endmodule

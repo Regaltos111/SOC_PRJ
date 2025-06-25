@@ -1,0 +1,101 @@
+
+module tb_cpu_system;
+
+    // Inputs to DUT
+    reg clk;
+    reg rst;
+    reg [15:0] address;
+    reg wr;
+    reg rd;
+    wire [7:0] data;
+
+    // Internal data register (for driving or reading from data bus)
+    reg [7:0] data_drive;
+    reg data_dir; // 1 = drive, 0 = read
+
+    // Instantiate DUT
+    cpu_system uut (
+        .clk(clk),
+        .rst(rst),
+        .address(address),
+        .data(data),
+        .wr(wr),
+        .rd(rd)
+    );
+
+    // Drive tri-state data bus
+    assign data = data_dir ? data_drive : 8'bz;
+    wire [7:0] data_read = data;
+
+    // Clock Generation
+    always #5 clk = ~clk;
+
+    // Test sequence
+    initial begin
+        // Initialize
+        clk = 0;
+        rst = 1;
+        wr = 0;
+        rd = 0;
+        data_dir = 0;
+        address = 0;
+        data_drive = 0;
+
+        #10 rst = 0;
+
+        // WRITE TO MEMORY (Address: 0x0001)
+        #10;
+        address = 16'h0001;
+        data_drive = 8'hAA;
+        data_dir = 1;
+        wr = 1;
+        #10 wr = 0;
+        data_dir = 0;
+
+        // READ FROM MEMORY
+        #10;
+        address = 16'h0001;
+        rd = 1;
+        #10;
+        $display("READ from MEMORY: %h", data_read);
+        rd = 0;
+
+        // WRITE TO I/O DEVICE (Address: 0x4002)
+        #10;
+        address = 16'h4002;
+        data_drive = 8'hBB;
+        data_dir = 1;
+        wr = 1;
+        #10 wr = 0;
+        data_dir = 0;
+
+        // READ FROM I/O DEVICE
+        #10;
+        address = 16'h4002;
+        rd = 1;
+        #10;
+        $display("READ from I/O: %h", data_read);
+        rd = 0;
+
+        // WRITE TO PERIPHERAL (Address: 0x5003)
+        #10;
+        address = 16'h5003;
+        data_drive = 8'hCC;
+        data_dir = 1;
+        wr = 1;
+        #10 wr = 0;
+        data_dir = 0;
+
+        // READ FROM PERIPHERAL
+        #10;
+        address = 16'h5003;
+        rd = 1;
+        #10;
+        $display("READ from PERIPHERAL: %h", data_read);
+        rd = 0;
+
+        #20;
+        $finish;
+    end
+
+endmodule

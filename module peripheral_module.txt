@@ -1,0 +1,22 @@
+module peripheral_module(
+    input clk,
+    input en,
+    input wr,
+    input rd,
+    input [7:0] data_in,
+    output reg [7:0] data_out
+);
+    reg [7:0] periph_reg;
+
+    always @(posedge clk) begin
+        if (en && wr)
+            periph_reg <= data_in;
+    end
+
+    always @(*) begin
+        if (en && rd)
+            data_out = periph_reg;
+        else
+            data_out = 8'bz;
+    end
+endmodule
